@@ -1,4 +1,19 @@
-import { CapabilityCard } from './CapabilityCard.js';
+import { useEffect, useState } from 'react';
+import { getJson } from '../api/client.js';
+
+type Activity = { type: string; minutes: number; points: number };
+
 export default function Activities() {
-  return <CapabilityCard title="Activities" description="Track student activity minutes and points." />;
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    getJson<{ activities: Activity[] }>('/api/activities')
+      .then((data) => setActivities(data.activities))
+      .catch(() => setError('Unable to load activities'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return <section><h1>Activities</h1>{loading ? <p role="status">Loading activities...</p> : error ? <p role="alert">{error}</p> : activities.length === 0 ? <p>No activities</p> : <ul className="list-group">{activities.map((activity, index) => <li className="list-group-item" key={index}>{activity.type} - {activity.minutes} minutes - {activity.points} points</li>)}</ul>}</section>;
 }
